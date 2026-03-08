@@ -34,7 +34,10 @@ func TestExpandAttrMap_SingleFlatKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	v, ok := obj.Attributes()["key"].(types.String)
 	if !ok || v.ValueString() != "val" {
 		t.Errorf("expected key='val', got %v", obj.Attributes()["key"])
@@ -49,7 +52,10 @@ func TestExpandAttrMap_TwoLevelKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	inner, ok := obj.Attributes()["a"].(types.Object)
 	if !ok {
 		t.Fatalf("expected 'a' to be types.Object")
@@ -69,7 +75,10 @@ func TestExpandAttrMap_SharedPrefix(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	inner, ok := obj.Attributes()["a"].(types.Object)
 	if !ok {
 		t.Fatalf("expected 'a' to be an object")
@@ -94,7 +103,10 @@ func TestExpandAttrMap_MultipleTopLevelKeys(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if _, ok := obj.Attributes()["x"]; !ok {
 		t.Error("expected top-level key 'x'")
 	}
@@ -111,7 +123,10 @@ func TestExpandAttrMap_CustomSeparator(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	mid, ok := obj.Attributes()["a"].(types.Object)
 	if !ok {
 		t.Fatalf("expected 'a' to be object")
@@ -140,13 +155,16 @@ func TestExpandAttrMap_RoundTrip(t *testing.T) {
 	)
 
 	flat := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", 100, flat)
+	collapseValue("", root, "/", 100, flat)
 
 	expanded, err := expandAttrMap(ctx, flat, "/")
 	if err != nil {
 		t.Fatalf("expand error: %v", err)
 	}
-	expandedObj := expanded.(types.Object)
+	expandedObj, ok := expanded.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", expanded)
+	}
 	innerResult, ok := expandedObj.Attributes()["a"].(types.Object)
 	if !ok {
 		t.Fatalf("expected 'a' to be object after round-trip")

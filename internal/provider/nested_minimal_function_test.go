@@ -22,14 +22,17 @@ func TestNestedMinimal_RemovesNullLeaves(t *testing.T) {
 	root := buildNestedObject(t, ctx, map[string]attr.Value{"a": leaf, "b": nullLeaf})
 
 	flatAttrs := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", -1, flatAttrs)
+	collapseValue("", root, "/", -1, flatAttrs)
 	filtered := filterMapByPredicate(flatAttrs, func(v attr.Value) bool { return !v.IsNull() && !isEmptyValue(v) })
 
 	result, err := expandAttrMap(ctx, filtered, "/")
 	if err != nil {
 		t.Fatalf("unexpected expand error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if _, ok := obj.Attributes()["a"]; !ok {
 		t.Error("expected key 'a' to be present")
 	}
@@ -49,14 +52,17 @@ func TestNestedMinimal_RemovesEmptyLeaves(t *testing.T) {
 	root := buildNestedObject(t, ctx, map[string]attr.Value{"a": leaf, "b": emptyLeaf})
 
 	flatAttrs := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", -1, flatAttrs)
+	collapseValue("", root, "/", -1, flatAttrs)
 	filtered := filterMapByPredicate(flatAttrs, func(v attr.Value) bool { return !v.IsNull() && !isEmptyValue(v) })
 
 	result, err := expandAttrMap(ctx, filtered, "/")
 	if err != nil {
 		t.Fatalf("unexpected expand error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if _, ok := obj.Attributes()["a"]; !ok {
 		t.Error("expected key 'a' to be present")
 	}
@@ -77,7 +83,7 @@ func TestNestedMinimal_DifferenceFromNestedCompact(t *testing.T) {
 	root := buildNestedObject(t, ctx, map[string]attr.Value{"a": leaf, "b": emptyLeaf})
 
 	flatAttrs := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", -1, flatAttrs)
+	collapseValue("", root, "/", -1, flatAttrs)
 
 	compactFiltered := filterMapByPredicate(flatAttrs, func(v attr.Value) bool { return !v.IsNull() })
 	minimalFiltered := filterMapByPredicate(flatAttrs, func(v attr.Value) bool { return !v.IsNull() && !isEmptyValue(v) })

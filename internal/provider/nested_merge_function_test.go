@@ -39,11 +39,22 @@ func TestNestedMergeTwo_ScalarOverride(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	obj := result.(types.Object)
-	if v := obj.Attributes()["a"].(types.String).ValueString(); v != "new" {
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
+	aStr, ok := obj.Attributes()["a"].(types.String)
+	if !ok {
+		t.Fatalf("expected a to be types.String")
+	}
+	if v := aStr.ValueString(); v != "new" {
 		t.Errorf("expected a='new', got %q", v)
 	}
-	if v := obj.Attributes()["b"].(types.String).ValueString(); v != "keep" {
+	bStr, ok := obj.Attributes()["b"].(types.String)
+	if !ok {
+		t.Fatalf("expected b to be types.String")
+	}
+	if v := bStr.ValueString(); v != "keep" {
 		t.Errorf("expected b='keep', got %q", v)
 	}
 }
@@ -64,12 +75,26 @@ func TestNestedMergeTwo_DeepMergeObjects(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	obj := result.(types.Object)
-	b := obj.Attributes()["b"].(types.Object)
-	if v := b.Attributes()["x"].(types.Bool).ValueBool(); v != false {
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
+	b, ok := obj.Attributes()["b"].(types.Object)
+	if !ok {
+		t.Fatalf("expected b to be types.Object")
+	}
+	bx, ok := b.Attributes()["x"].(types.Bool)
+	if !ok {
+		t.Fatalf("expected b.x to be types.Bool")
+	}
+	if v := bx.ValueBool(); v != false {
 		t.Error("expected b.x=false (overridden)")
 	}
-	if v := b.Attributes()["z"].(types.Bool).ValueBool(); v != true {
+	bz, ok := b.Attributes()["z"].(types.Bool)
+	if !ok {
+		t.Fatalf("expected b.z to be types.Bool")
+	}
+	if v := bz.ValueBool(); v != true {
 		t.Error("expected b.z=true (preserved from base)")
 	}
 }
@@ -83,7 +108,10 @@ func TestNestedMergeTwo_NewKeyAdded(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if len(obj.Attributes()) != 2 {
 		t.Errorf("expected 2 attributes, got %d", len(obj.Attributes()))
 	}
@@ -99,7 +127,10 @@ func TestNestedMergeTwo_NonObjectOverridesObject(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if v, ok := obj.Attributes()["b"].(types.String); !ok || v.ValueString() != "replaced" {
 		t.Error("expected b to be overridden with string 'replaced'")
 	}
@@ -135,18 +166,32 @@ func TestNestedMergeTwo_ThreeWay(t *testing.T) {
 		t.Fatalf("merge (m1+m2)+m3: %v", funcErr)
 	}
 
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 
 	// a should be list [1,2]
 	if _, ok := obj.Attributes()["a"].(types.List); !ok {
 		t.Error("expected a to be a list")
 	}
 	// b should be deep-merged: {x=false, z=true}
-	b := obj.Attributes()["b"].(types.Object)
-	if v := b.Attributes()["z"].(types.Bool).ValueBool(); v != true {
+	b, ok := obj.Attributes()["b"].(types.Object)
+	if !ok {
+		t.Fatalf("expected b to be types.Object")
+	}
+	bz, ok := b.Attributes()["z"].(types.Bool)
+	if !ok {
+		t.Fatalf("expected b.z to be types.Bool")
+	}
+	if v := bz.ValueBool(); v != true {
 		t.Error("expected b.z=true (from m1)")
 	}
-	if v := b.Attributes()["x"].(types.Bool).ValueBool(); v != false {
+	bx, ok := b.Attributes()["x"].(types.Bool)
+	if !ok {
+		t.Fatalf("expected b.x to be types.Bool")
+	}
+	if v := bx.ValueBool(); v != false {
 		t.Error("expected b.x=false (from m3)")
 	}
 	// c and d should be present
@@ -167,7 +212,10 @@ func TestNestedMergeTwo_EmptyBase(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if len(obj.Attributes()) != 1 {
 		t.Errorf("expected 1 attribute, got %d", len(obj.Attributes()))
 	}

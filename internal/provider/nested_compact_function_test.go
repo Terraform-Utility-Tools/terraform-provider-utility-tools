@@ -12,7 +12,7 @@ import (
 )
 
 // buildNestedInput constructs a two-level nested object suitable for nestedCompact/nestedMinimal testing.
-// Structure: {outer: {inner1: leafObj1, inner2: leafObj2, ...}}
+// Structure: {outer: {inner1: leafObj1, inner2: leafObj2, ...}}.
 func buildNestedObject(t *testing.T, ctx context.Context, leaves map[string]attr.Value) types.Object {
 	t.Helper()
 	leafTypes := make(map[string]attr.Type, len(leaves))
@@ -42,14 +42,17 @@ func TestNestedCompact_RemovesNullLeaves(t *testing.T) {
 	})
 
 	flatAttrs := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", -1, flatAttrs)
+	collapseValue("", root, "/", -1, flatAttrs)
 	filtered := filterMapByPredicate(flatAttrs, func(v attr.Value) bool { return !v.IsNull() })
 
 	result, err := expandAttrMap(ctx, filtered, "/")
 	if err != nil {
 		t.Fatalf("unexpected expand error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if _, ok := obj.Attributes()["a"]; !ok {
 		t.Error("expected key 'a' to be present after nestedCompact")
 	}
@@ -72,14 +75,17 @@ func TestNestedCompact_PreservesAllNonNullLeaves(t *testing.T) {
 	root := buildNestedObject(t, ctx, map[string]attr.Value{"a": leafA, "b": leafB})
 
 	flatAttrs := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", -1, flatAttrs)
+	collapseValue("", root, "/", -1, flatAttrs)
 	filtered := filterMapByPredicate(flatAttrs, func(v attr.Value) bool { return !v.IsNull() })
 
 	result, err := expandAttrMap(ctx, filtered, "/")
 	if err != nil {
 		t.Fatalf("unexpected expand error: %v", err)
 	}
-	obj := result.(types.Object)
+	obj, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if len(obj.Attributes()) != 2 {
 		t.Errorf("expected 2 keys, got %d", len(obj.Attributes()))
 	}

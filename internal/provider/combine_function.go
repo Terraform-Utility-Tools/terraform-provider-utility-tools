@@ -124,18 +124,28 @@ func combineToAttrMap(ctx context.Context, inputDyn types.Dynamic, keySeparator 
 			return nil, function.NewFuncError("each input element must be an object")
 		}
 		attrs := obj.Attributes()
-		key := attrs["key"].(types.String).ValueString()
+		keyStr, ok := attrs["key"].(types.String)
+		if !ok {
+			return nil, function.NewFuncError("each input element must have a string 'key' attribute")
+		}
+		key := keyStr.ValueString()
 
 		var entries []entry
 		switch v := attrs["items"].(type) {
 		case types.List:
 			for _, elem := range v.Elements() {
-				sv := elem.(types.String)
+				sv, ok := elem.(types.String)
+				if !ok {
+					return nil, function.NewFuncError("list items must be strings")
+				}
 				entries = append(entries, entry{pathKey: sv.ValueString(), value: sv})
 			}
 		case types.Tuple:
 			for _, elem := range v.Elements() {
-				sv := elem.(types.String)
+				sv, ok := elem.(types.String)
+				if !ok {
+					return nil, function.NewFuncError("tuple items must be strings")
+				}
 				entries = append(entries, entry{pathKey: sv.ValueString(), value: sv})
 			}
 		case types.Map:

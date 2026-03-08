@@ -75,7 +75,7 @@ func (f *CollapseFunction) Run(ctx context.Context, req function.RunRequest, res
 	}
 
 	result := make(map[string]attr.Value)
-	collapseValue(ctx, "", input.UnderlyingValue(), separator, maxDepth, result)
+	collapseValue("", input.UnderlyingValue(), separator, maxDepth, result)
 
 	// Build output as types.Object (keys are dynamic path strings)
 	attrTypes := make(map[string]attr.Type, len(result))
@@ -116,7 +116,7 @@ func isAllContainers(v attr.Value) bool {
 	return true
 }
 
-func collapseValue(ctx context.Context, prefix string, v attr.Value, separator string, remainingDepth int, result map[string]attr.Value) {
+func collapseValue(prefix string, v attr.Value, separator string, remainingDepth int, result map[string]attr.Value) {
 	if remainingDepth == 0 {
 		result[prefix] = v
 		return
@@ -150,7 +150,7 @@ func collapseValue(ctx context.Context, prefix string, v attr.Value, separator s
 		if prefix != "" {
 			childKey = prefix + separator + k
 		}
-		collapseValue(ctx, childKey, child, separator, nextDepth, result)
+		collapseValue(childKey, child, separator, nextDepth, result)
 	}
 }
 

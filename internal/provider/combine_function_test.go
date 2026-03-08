@@ -12,7 +12,7 @@ import (
 )
 
 // buildCombineInput constructs a types.Dynamic wrapping a list of {key, items} objects.
-func buildCombineInput(t *testing.T, ctx context.Context, dims []struct {
+func buildCombineInput(t *testing.T, dims []struct {
 	key    string
 	values []string
 }) types.Dynamic {
@@ -54,7 +54,7 @@ func buildCombineInput(t *testing.T, ctx context.Context, dims []struct {
 
 func TestCombineToAttrMap_SingleDimension(t *testing.T) {
 	ctx := context.Background()
-	input := buildCombineInput(t, ctx, []struct {
+	input := buildCombineInput(t, []struct {
 		key    string
 		values []string
 	}{
@@ -83,7 +83,7 @@ func TestCombineToAttrMap_SingleDimension(t *testing.T) {
 
 func TestCombineToAttrMap_TwoDimensions(t *testing.T) {
 	ctx := context.Background()
-	input := buildCombineInput(t, ctx, []struct {
+	input := buildCombineInput(t, []struct {
 		key    string
 		values []string
 	}{
@@ -110,7 +110,7 @@ func TestCombineToAttrMap_TwoDimensions(t *testing.T) {
 func TestCombineToAttrMap_TwoDimensionsObjectAttributes(t *testing.T) {
 	ctx := context.Background()
 	// Each result object should contain both dimension attributes.
-	input := buildCombineInput(t, ctx, []struct {
+	input := buildCombineInput(t, []struct {
 		key    string
 		values []string
 	}{
@@ -137,7 +137,7 @@ func TestCombineToAttrMap_TwoDimensionsObjectAttributes(t *testing.T) {
 
 func TestCombineToAttrMap_ThreeDimensions(t *testing.T) {
 	ctx := context.Background()
-	input := buildCombineInput(t, ctx, []struct {
+	input := buildCombineInput(t, []struct {
 		key    string
 		values []string
 	}{
@@ -292,7 +292,7 @@ func TestCombineToAttrMap_NonListInput(t *testing.T) {
 
 func TestCombineToAttrMap_EmptyDimension(t *testing.T) {
 	ctx := context.Background()
-	input := buildCombineInput(t, ctx, []struct {
+	input := buildCombineInput(t, []struct {
 		key    string
 		values []string
 	}{

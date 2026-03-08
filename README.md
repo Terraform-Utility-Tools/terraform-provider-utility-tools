@@ -1,4 +1,7 @@
 # Terraform Provider: Utility Tools
+<p align="center">
+  <img src="assets/logo.png" alt="Utility Tools" width="400">
+</p>
 
 A collection of pure functions for Terraform that fill gaps in the standard library — focused on map and object manipulation, filtering, and merging.
 
@@ -48,8 +51,7 @@ Requires Terraform >= 1.8.0 (provider functions support).
 terraform {
   required_providers {
     util = {
-      source  = "tjeerd.dev/utility-tools"
-      version = "~> 1.0"
+      source  = "Terraform-Utility-Tools/utility-tools"
     }
   }
   required_version = ">= 1.8.0"
@@ -62,7 +64,7 @@ Functions are called as `provider::util::<name>(...)`.
 
 ## Suggestions
 
-Missing a function you'd find useful? [Open an issue](https://github.com/TheWolfNL/terraform-provider-utility-tools/issues) with your suggestion.
+Missing a function you'd find useful? [Open an issue](https://github.com/Terraform-Utility-Tools/terraform-provider-utility-tools/issues) with your suggestion.
 
 ## Development
 

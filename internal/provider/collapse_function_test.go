@@ -111,7 +111,7 @@ func TestCollapseValue_AutoDepthStopsAtLeafObjects(t *testing.T) {
 	)
 
 	result := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", -1, result)
+	collapseValue("", root, "/", -1, result)
 
 	// Auto mode stops at env/dev and env/prod because their children are strings.
 	if len(result) != 2 {
@@ -126,8 +126,6 @@ func TestCollapseValue_AutoDepthStopsAtLeafObjects(t *testing.T) {
 }
 
 func TestCollapseValue_AutoDepthSingleLevel(t *testing.T) {
-	ctx := context.Background()
-
 	// {a: "x", b: "y"} — top level has string children, so nothing collapses
 	root, _ := types.ObjectValue(
 		map[string]attr.Type{"a": types.StringType, "b": types.StringType},
@@ -135,7 +133,7 @@ func TestCollapseValue_AutoDepthSingleLevel(t *testing.T) {
 	)
 
 	result := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", -1, result)
+	collapseValue("", root, "/", -1, result)
 
 	// Root itself is a leaf (has non-container children), so result = {"": root}
 	if _, ok := result[""]; !ok {
@@ -159,7 +157,7 @@ func TestCollapseValue_ExplicitDepth1(t *testing.T) {
 	)
 
 	result := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", 1, result)
+	collapseValue("", root, "/", 1, result)
 
 	// Depth 1: expand one level, so {a: inner}
 	if len(result) != 1 {
@@ -187,7 +185,7 @@ func TestCollapseValue_ExplicitDepthUnlimited(t *testing.T) {
 	)
 
 	result := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, "/", 100, result)
+	collapseValue("", root, "/", 100, result)
 
 	if _, ok := result["a/b/c"]; !ok {
 		t.Error("expected key 'a/b/c' with explicit depth 100")
@@ -210,7 +208,7 @@ func TestCollapseValue_CustomSeparator(t *testing.T) {
 	)
 
 	result := make(map[string]attr.Value)
-	collapseValue(ctx, "", root, ".", 100, result)
+	collapseValue("", root, ".", 100, result)
 
 	if _, ok := result["a.b"]; !ok {
 		t.Errorf("expected key 'a.b' with dot separator")

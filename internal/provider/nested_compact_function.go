@@ -62,7 +62,7 @@ func (f *NestedCompactFunction) Run(ctx context.Context, req function.RunRequest
 
 	// Step 1: collapse (auto depth — stops at leaf objects)
 	flatAttrs := make(map[string]attr.Value)
-	collapseValue(ctx, "", input.UnderlyingValue(), separator, -1, flatAttrs)
+	collapseValue("", input.UnderlyingValue(), separator, -1, flatAttrs)
 
 	// Step 2: remove null and empty string entries
 	filtered := filterMapByPredicate(flatAttrs, func(v attr.Value) bool { return !v.IsNull() && !isEmptyString(v) })

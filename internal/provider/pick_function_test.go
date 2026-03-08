@@ -83,7 +83,10 @@ func TestPick_MissingKeyIgnored(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	out := result.(types.Object)
+	out, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if len(out.Attributes()) != 1 {
 		t.Errorf("expected 1 attribute, got %d", len(out.Attributes()))
 	}
@@ -99,7 +102,10 @@ func TestPick_EmptyKeyList(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	out := result.(types.Object)
+	out, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if len(out.Attributes()) != 0 {
 		t.Errorf("expected empty result, got %d attributes", len(out.Attributes()))
 	}
@@ -154,7 +160,10 @@ func TestOmit_RemovesSpecifiedKeys(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	out := result.(types.Object)
+	out, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if len(out.Attributes()) != 2 {
 		t.Errorf("expected 2 attributes, got %d", len(out.Attributes()))
 	}
@@ -173,7 +182,10 @@ func TestOmit_MissingKeyIgnored(t *testing.T) {
 	if funcErr != nil {
 		t.Fatalf("unexpected error: %v", funcErr)
 	}
-	out := result.(types.Object)
+	out, ok := result.(types.Object)
+	if !ok {
+		t.Fatalf("expected types.Object, got %T", result)
+	}
 	if len(out.Attributes()) != 2 {
 		t.Errorf("expected 2 attributes unchanged, got %d", len(out.Attributes()))
 	}
