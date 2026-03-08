@@ -1,0 +1,83 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Basic usage
+
+When the same key holds an object in both arguments, the objects are merged recursively. For all other value types the rightmost argument wins.
+
+```console
+> provider::util::nestedMerge({ a = "b", b = { z = true } }, { a = [1, 2], c = "z" }, { b = { x = false }, d = 3 })
+{
+  "a" = [1, 2]
+  "b" = {
+    "x" = false
+    "z" = true
+  }
+  "c" = "z"
+  "d" = 3
+}
+```
+
+`a` is overwritten by `[1, 2]` (last wins), but `b` is deeply merged — `z = true` from the first argument is preserved while `x = false` is added from the third.
+
+### Merging defaults with environment overrides
+
+A common pattern is to define shared defaults and merge per-environment overrides on top.
+
+```terraform
+locals {
+  defaults = {
+    replicas = 1
+    tls      = false
+    labels   = { app = "myapp" }
+  }
+
+  prod_overrides = {
+    replicas = 3
+    tls      = true
+    labels   = { env = "prod" }
+  }
+}
+
+output "prod_config" {
+  value = provider::util::nestedMerge(local.defaults, local.prod_overrides)
+}
+# Result:
+# {
+#   replicas = 3
+#   tls      = true
+#   labels   = { app = "myapp", env = "prod" }
+# }
+```
+
+Note that `labels` is recursively merged — both `app` from defaults and `env` from the override are present in the result.
+
+### Difference from Terraform's built-in merge()
+
+Terraform's built-in `merge()` does a **shallow** merge: if the same key exists in two maps, the later value replaces the earlier one entirely, even for nested objects.
+
+```console
+> merge({ b = { x = false } }, { b = { z = true } })
+{ "b" = { "z" = true } }
+
+> provider::util::nestedMerge({ b = { x = false } }, { b = { z = true } })
+{ "b" = { "x" = false, "z" = true } }
+```

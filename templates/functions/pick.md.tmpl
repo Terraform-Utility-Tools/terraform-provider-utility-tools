@@ -1,0 +1,54 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Basic usage
+
+```terraform
+locals {
+  entry = { env = "prod", region = "europe-west1", service = { id = "api", port = 8080 } }
+}
+
+output "identity_attrs" {
+  value = provider::util::pick(local.entry, ["env", "service"])
+}
+# Result: { env = "prod", service = { id = "api", port = 8080 } }
+```
+
+### Using with combine and for_each
+
+A common pattern is to use `pick` to extract only the attributes needed for a resource name or tag set from a `combine` result.
+
+```terraform
+locals {
+  all = provider::util::combine([
+    { key = "env",    items = ["dev", "prod"] },
+    { key = "region", items = ["europe-west1", "us-central1"] },
+    { key = "tier",   items = ["api", "web"] },
+  ])
+}
+
+resource "google_compute_network" "vpc" {
+  for_each = provider::util::filter(local.all, { env = "prod" })
+  name     = "vpc-${each.value.env}-${each.value.region}"
+  # Pass only the subset of attributes this resource needs as labels
+  labels   = provider::util::pick(each.value, ["env", "region"])
+}
+```

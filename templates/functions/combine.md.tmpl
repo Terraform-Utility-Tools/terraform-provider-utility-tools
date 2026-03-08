@@ -1,0 +1,107 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Basic usage
+
+Each dimension has a `key` (the attribute name in the result) and an `items` list. The function produces one entry per combination, with the map key built by joining dimension values with the separator.
+
+```terraform
+locals {
+  dimensions = [
+    { key = "env",    items = ["dev", "prod"] },
+    { key = "region", items = ["europe-west1", "europe-north1"] },
+  ]
+}
+
+output "combinations" {
+  value = provider::util::combine(local.dimensions)
+}
+# Result:
+# {
+#   "dev/europe-west1"   = { env = "dev",  region = "europe-west1"  }
+#   "dev/europe-north1"  = { env = "dev",  region = "europe-north1" }
+#   "prod/europe-west1"  = { env = "prod", region = "europe-west1"  }
+#   "prod/europe-north1" = { env = "prod", region = "europe-north1" }
+# }
+```
+
+### Custom separator
+
+Pass a separator string to control how the map keys are joined.
+
+```terraform
+locals {
+  dimensions = [
+    { key = "env",     items = ["dev", "prod"] },
+    { key = "service", items = ["api", "web"] },
+  ]
+}
+
+output "underscore_keys" {
+  value = provider::util::combine(local.dimensions, "_")
+}
+# Result keys: "dev_api", "dev_web", "prod_api", "prod_web"
+```
+
+### Using map items
+
+Instead of a list, each dimension can use a map for `items`. The map key is used as the path segment. When map values are objects, the result attribute for that dimension is set to the map value's attributes **plus** an `id` field holding the map key.
+
+```terraform
+locals {
+  dimensions = [
+    { key = "env", items = {
+      dev  = { debug = true,  replicas = 1 }
+      prod = { debug = false, replicas = 3 }
+    }},
+    { key = "tier", items = ["api", "web"] },
+  ]
+}
+
+output "with_metadata" {
+  value = provider::util::combine(local.dimensions)
+}
+# Result:
+# {
+#   "dev/api"  = { env = { id = "dev",  debug = true,  replicas = 1 }, tier = "api" }
+#   "dev/web"  = { env = { id = "dev",  debug = true,  replicas = 1 }, tier = "web" }
+#   "prod/api" = { env = { id = "prod", debug = false, replicas = 3 }, tier = "api" }
+#   "prod/web" = { env = { id = "prod", debug = false, replicas = 3 }, tier = "web" }
+# }
+```
+
+### Using combine with for_each
+
+The flat map output is designed for use with `for_each`, allowing you to express multi-dimensional resources concisely.
+
+```terraform
+locals {
+  combos = provider::util::combine([
+    { key = "env",    items = ["dev", "prod"] },
+    { key = "region", items = ["europe-west1", "us-central1"] },
+  ])
+}
+
+resource "google_compute_network" "vpc" {
+  for_each = local.combos
+  name     = "vpc-${each.value.env}-${each.value.region}"
+}
+```

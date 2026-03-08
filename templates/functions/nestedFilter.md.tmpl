@@ -1,0 +1,112 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Filter preserving nested structure
+
+`nestedFilter` walks to the leaf objects and removes any that do not match the condition. Intermediate levels are pruned if they become empty.
+
+```terraform
+locals {
+  services = {
+    dev = {
+      api = { port = 8080, tls = false }
+      web = { port = 443,  tls = true  }
+    }
+    prod = {
+      api = { port = 8080, tls = true }
+      web = { port = 443,  tls = true }
+    }
+  }
+}
+
+output "tls_services" {
+  value = provider::util::nestedFilter(local.services, { tls = true })
+}
+# Result:
+# {
+#   dev  = { web = { port = 443, tls = true } }
+#   prod = { api = { port = 8080, tls = true }, web = { port = 443, tls = true } }
+# }
+```
+
+### AND and OR conditions
+
+Within a single condition object all attributes must match (AND). Passing multiple condition objects keeps leaves matching any of them (OR).
+
+```terraform
+locals {
+  endpoints = {
+    dev = {
+      public  = { port = 443,  tls = true,  env = "dev" }
+      private = { port = 8080, tls = false, env = "dev" }
+    }
+    prod = {
+      public  = { port = 443,  tls = true,  env = "prod" }
+      private = { port = 8080, tls = false, env = "prod" }
+    }
+  }
+}
+
+# AND: keep only TLS-enabled endpoints
+output "tls_endpoints" {
+  value = provider::util::nestedFilter(local.endpoints, { tls = true })
+}
+# Result: { dev = { public = {...} }, prod = { public = {...} } }
+
+# OR: keep dev-public OR prod-private
+output "mixed_selection" {
+  value = provider::util::nestedFilter(local.endpoints, { tls = true, env = "dev" }, { tls = false, env = "prod" })
+}
+```
+
+### Using with nestedCombine
+
+A powerful pattern is to generate all combinations with `nestedCombine`, then select a meaningful subset with `nestedFilter`.
+
+```terraform
+locals {
+  all = provider::util::nestedCombine([
+    { key = "env",    items = ["dev", "prod"] },
+    { key = "region", items = ["europe-west1", "us-central1"] },
+    { key = "tier",   items = {
+      api    = { replicas = 2, tls = false }
+      web    = { replicas = 3, tls = true  }
+      worker = { replicas = 1, tls = false }
+    }},
+  ])
+}
+
+# Keep only TLS-enabled tiers across all environments and regions.
+output "tls_tiers" {
+  value = provider::util::nestedFilter(local.all, { tls = true })
+}
+# Result:
+# {
+#   dev = {
+#     europe-west1 = { web = { id = "web", replicas = 3, tls = true } }
+#     us-central1  = { web = { id = "web", replicas = 3, tls = true } }
+#   }
+#   prod = {
+#     europe-west1 = { web = { id = "web", replicas = 3, tls = true } }
+#     us-central1  = { web = { id = "web", replicas = 3, tls = true } }
+#   }
+# }
+```

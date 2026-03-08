@@ -1,0 +1,34 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+```console
+> provider::util::nestedCompact({ dev = { api = { port = 8080 }, db = null }, prod = { api = { port = 8080 } } })
+tomap({
+  dev  = tomap({ api = tomap({ port = 8080 }) })
+  prod = tomap({ api = tomap({ port = 8080 }) })
+})
+```
+
+~> **Note:** `nestedCompact` removes null leaves at any depth. Use `nestedMinimal` to also remove empty collections.
+
+### HCL Example
+
+{{codefile "terraform" "examples/functions/nested_compact/functionNestedCompact.tf"}}

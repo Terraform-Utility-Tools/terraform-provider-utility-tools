@@ -5,11 +5,8 @@ package provider
 
 import (
 	"context"
-	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -17,93 +14,89 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure ScaffoldingProvider satisfies various provider interfaces.
-var _ provider.Provider = &ScaffoldingProvider{}
-var _ provider.ProviderWithFunctions = &ScaffoldingProvider{}
-var _ provider.ProviderWithEphemeralResources = &ScaffoldingProvider{}
-var _ provider.ProviderWithActions = &ScaffoldingProvider{}
+// Ensure UtilityToolsProvider satisfies various provider interfaces.
+var (
+	_ provider.ProviderWithFunctions = &UtilityToolsProvider{}
+)
 
-// ScaffoldingProvider defines the provider implementation.
-type ScaffoldingProvider struct {
-	// version is set to the provider version on release, "dev" when the
-	// provider is built and ran locally, and "test" when running acceptance
-	// testing.
-	version string
+// UtilityToolsProvider defines the provider implementation.
+type UtilityToolsProvider struct {
+	version          string
+	defaultSeparator string
 }
 
-// ScaffoldingProviderModel describes the provider data model.
-type ScaffoldingProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
+// UtilityToolsProviderModel describes the provider data model.
+type UtilityToolsProviderModel struct {
+	Separator types.String `tfsdk:"separator"`
 }
 
-func (p *ScaffoldingProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "scaffolding"
+func (p *UtilityToolsProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "util"
 	resp.Version = p.version
 }
 
-func (p *ScaffoldingProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+// Schema defines the provider-level schema for configuration data.
+func (p *UtilityToolsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Example provider attribute",
-				Optional:            true,
+			"separator": schema.StringAttribute{
+				Optional:    true,
+				Description: "Default separator used by collapse, expand, and combine. Defaults to '/'.",
 			},
 		},
 	}
 }
 
-func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data ScaffoldingProviderModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+func (p *UtilityToolsProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var config UtilityToolsProviderModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Configuration values are now available.
-	// if data.Endpoint.IsNull() { /* ... */ }
-
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
-}
-
-func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewExampleResource,
+	if !config.Separator.IsNull() && !config.Separator.IsUnknown() {
+		p.defaultSeparator = config.Separator.ValueString()
+	} else {
+		p.defaultSeparator = "/"
 	}
 }
 
-func (p *ScaffoldingProvider) EphemeralResources(ctx context.Context) []func() ephemeral.EphemeralResource {
-	return []func() ephemeral.EphemeralResource{
-		NewExampleEphemeralResource,
-	}
+// DataSources defines the data sources implemented in the provider.
+func (p *UtilityToolsProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return nil
 }
 
-func (p *ScaffoldingProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		NewExampleDataSource,
-	}
+// Resources defines the resources implemented in the provider.
+func (p *UtilityToolsProvider) Resources(_ context.Context) []func() resource.Resource {
+	return nil
 }
 
-func (p *ScaffoldingProvider) Functions(ctx context.Context) []func() function.Function {
+func (p *UtilityToolsProvider) Functions(ctx context.Context) []func() function.Function {
 	return []func() function.Function{
-		NewExampleFunction,
-	}
-}
-
-func (p *ScaffoldingProvider) Actions(ctx context.Context) []func() action.Action {
-	return []func() action.Action{
-		NewExampleAction,
+		func() function.Function { return NewCollapseFunction(p.defaultSeparator) },
+		func() function.Function { return NewCombineFunction(p.defaultSeparator) },
+		NewCompactFunction,
+		func() function.Function { return NewExpandFunction(p.defaultSeparator) },
+		NewFilterFunction,
+		NewIsNullFunction,
+		NewIsNotNullFunction,
+		NewMinimalFunction,
+		NewOmitFunction,
+		NewPickFunction,
+		NewTrimExtFunction,
+		func() function.Function { return NewNestedCombineFunction(p.defaultSeparator) },
+		NewNestedMergeFunction,
+		func() function.Function { return NewNestedCompactFunction(p.defaultSeparator) },
+		func() function.Function { return NewNestedFilterFunction(p.defaultSeparator) },
+		func() function.Function { return NewNestedMinimalFunction(p.defaultSeparator) },
 	}
 }
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &ScaffoldingProvider{
-			version: version,
+		return &UtilityToolsProvider{
+			version:          version,
+			defaultSeparator: "/",
 		}
 	}
 }
