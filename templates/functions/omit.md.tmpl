@@ -1,0 +1,53 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Basic usage
+
+```terraform
+locals {
+  entry = { env = "prod", region = "europe-west1", service = { id = "api", port = 8080 } }
+}
+
+output "without_region" {
+  value = provider::util::omit(local.entry, ["region"])
+}
+# Result: { env = "prod", service = { id = "api", port = 8080 } }
+```
+
+### Stripping internal metadata before passing to a resource
+
+When the result of `combine` contains internal tracking attributes (like `id` in a nested service object), `omit` lets you strip them before using the value as resource configuration.
+
+```terraform
+locals {
+  all = provider::util::combine([
+    { key = "env",    items = ["dev", "prod"] },
+    { key = "region", items = ["europe-west1", "us-central1"] },
+  ])
+}
+
+resource "google_compute_network" "vpc" {
+  for_each = local.all
+  name     = "vpc-${each.value.env}-${each.value.region}"
+  # Remove the 'env' and 'region' keys — pass only remaining attributes as labels
+  labels   = provider::util::omit(each.value, ["env", "region"])
+}
+```

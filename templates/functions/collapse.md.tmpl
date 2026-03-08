@@ -1,0 +1,88 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Flatten to leaf objects (auto-depth)
+
+When no depth is specified, `collapse` stops at objects whose values are all primitives — the natural "leaf" level of your structure.
+
+```terraform
+locals {
+  services = {
+    dev = {
+      api = { port = 8080, secure = false }
+      web = { port = 443,  secure = true  }
+    }
+    prod = {
+      api = { port = 8080, secure = true }
+      web = { port = 443,  secure = true }
+    }
+  }
+}
+
+output "services_flat" {
+  value = provider::util::collapse(local.services)
+}
+# Result:
+# {
+#   "dev/api"  = { port = 8080, secure = false }
+#   "dev/web"  = { port = 443,  secure = true  }
+#   "prod/api" = { port = 8080, secure = true  }
+#   "prod/web" = { port = 443,  secure = true  }
+# }
+```
+
+### Flatten N levels deep
+
+Pass a number to limit how many levels are collapsed. Remaining nested structure is kept as-is.
+
+```terraform
+locals {
+  config = {
+    dev  = { db = { host = "localhost", port = 5432 } }
+    prod = { db = { host = "db.prod",   port = 5432 } }
+  }
+}
+
+output "two_levels" {
+  value = provider::util::collapse(local.config, 2)
+}
+# Result: { "dev/db" = { host = "localhost", port = 5432 }, "prod/db" = { host = "db.prod", port = 5432 } }
+```
+
+### Custom separator
+
+Pass a string to change the key separator (default comes from the provider configuration).
+
+```terraform
+locals {
+  tags = {
+    team = {
+      backend  = { cost_center = "eng-01" }
+      frontend = { cost_center = "eng-02" }
+    }
+  }
+}
+
+output "dot_separated" {
+  value = provider::util::collapse(local.tags, ".")
+}
+# Result: { "team.backend" = {...}, "team.frontend" = {...} }
+```

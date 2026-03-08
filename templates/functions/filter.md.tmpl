@@ -1,0 +1,105 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Filter by attribute condition
+
+Pass one or more condition objects to keep entries where all attributes in **any one** condition match.
+
+- **AND within a condition**: `{ env = "dev", public = true }` requires both attributes to match.
+- **OR across conditions**: `{ env = "dev" }, { env = "prod" }` keeps entries matching either.
+
+```terraform
+locals {
+  services = {
+    "dev/api"  = { env = "dev",  port = 8080, public = false }
+    "dev/web"  = { env = "dev",  port = 443,  public = true  }
+    "prod/api" = { env = "prod", port = 8080, public = false }
+    "prod/web" = { env = "prod", port = 443,  public = true  }
+  }
+}
+
+# AND: both env=dev AND public=true must match
+output "public_dev_services" {
+  value = provider::util::filter(local.services, { env = "dev", public = true })
+}
+# Result: { "dev/web" = {...} }
+
+# OR: env=dev OR env=prod
+output "dev_or_prod" {
+  value = provider::util::filter(local.services, { env = "dev" }, { env = "prod" })
+}
+# Result: all four entries
+
+# OR of non-overlapping sets
+output "private_dev_or_public_prod" {
+  value = provider::util::filter(local.services, { env = "dev", public = false }, { env = "prod", public = true })
+}
+# Result: { "dev/api" = {...}, "prod/web" = {...} }
+```
+
+### Nested attribute conditions
+
+Condition values that are objects are matched as subsets, allowing filtering on nested attributes.
+
+```terraform
+locals {
+  all = provider::util::combine([
+    { key = "env",     items = ["dev", "prod"] },
+    { key = "region",  items = ["europe-west1", "us-central1"] },
+    { key = "service", items = {
+      api    = { replicas = 2, tls = false }
+      web    = { replicas = 3, tls = true  }
+      worker = { replicas = 1, tls = false }
+    }},
+  ])
+}
+
+# Keep only prod entries where the service has tls=true.
+# The service object is matched as a subset: { tls = true } matches any service object
+# that contains tls = true, regardless of other attributes.
+output "prod_tls_services" {
+  value = provider::util::filter(local.all, { env = "prod", service = { tls = true } })
+}
+# Result:
+# {
+#   "prod/europe-west1/web" = { env = "prod", region = "europe-west1", service = { id = "web", replicas = 3, tls = true } }
+#   "prod/us-central1/web"  = { env = "prod", region = "us-central1",  service = { id = "web", replicas = 3, tls = true } }
+# }
+```
+
+### Using filter with for_each
+
+A common pattern is to use `combine` to generate all combinations, then `filter` to select a relevant subset for a particular resource.
+
+```terraform
+locals {
+  all = provider::util::combine([
+    { key = "env",    items = ["dev", "prod"] },
+    { key = "region", items = ["europe-west1", "us-central1"] },
+  ])
+}
+
+# Only create prod resources in the european region
+resource "google_compute_network" "prod_eu" {
+  for_each = provider::util::filter(local.all, { env = "prod", region = "europe-west1" })
+  name     = "vpc-${each.value.env}-${each.value.region}"
+}
+```

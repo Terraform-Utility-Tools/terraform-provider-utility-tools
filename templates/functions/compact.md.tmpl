@@ -1,0 +1,37 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+```console
+> provider::util::compact(["a", null, "", "b"])
+tolist(["a", "b"])
+
+> provider::util::compact({ a = 1, b = null, c = 3, d = [] })
+tomap({ a = 1, c = 3, d = tolist([]) })
+
+> provider::util::compact({ x = "keep", y = null, z = "" })
+tomap({ x = "keep" })
+```
+
+### HCL Example
+
+{{range .ExampleFiles -}}
+{{codefile "terraform" .}}
+{{end}}

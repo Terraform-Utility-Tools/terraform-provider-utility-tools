@@ -1,0 +1,39 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+```console
+> provider::util::minimal(["a", null, "", []])
+tolist(["a"])
+
+> provider::util::minimal({ a = "keep", b = null, c = [], d = {}, e = "" })
+tomap({ a = "keep" })
+
+> provider::util::minimal({ x = [1, 2], y = [], z = null })
+tomap({ x = tolist([1, 2]) })
+```
+
+~> **Note:** `minimal` removes null values, empty strings, and empty collections (`[]`, `{}`), but keeps `false` and `0`. Use `compact` to only strip nulls and empty strings while keeping empty collections.
+
+### HCL Example
+
+{{range .ExampleFiles -}}
+{{codefile "terraform" .}}
+{{end}}

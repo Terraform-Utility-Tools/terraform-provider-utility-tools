@@ -1,0 +1,29 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{- if .Description}}
+
+{{.Description}}
+{{- end}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+{{- if .ExampleFiles}}
+
+## Example Usage
+
+{{- range .ExampleFiles}}
+{{codefile "terraform" .}}
+{{- end}}
+{{- end}}

@@ -1,0 +1,33 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+
+## Example Usage
+
+```console
+> provider::util::isNull(null)
+true
+
+> provider::util::isNull("hello")
+false
+
+> provider::util::isNull("")
+false
+
+> provider::util::isNull(0)
+false
+```
+
+{{codefile "terraform" "examples/functions/is_null/functionIsNull.tf"}}

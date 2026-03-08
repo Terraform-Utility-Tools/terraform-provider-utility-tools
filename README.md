@@ -1,64 +1,80 @@
-# Terraform Provider Scaffolding (Terraform Plugin Framework)
+# Terraform Provider: Utility Tools
 
-_This template repository is built on the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework). The template repository built on the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) can be found at [terraform-provider-scaffolding](https://github.com/hashicorp/terraform-provider-scaffolding). See [Which SDK Should I Use?](https://developer.hashicorp.com/terraform/plugin/framework-benefits) in the Terraform documentation for additional information._
+A collection of pure functions for Terraform that fill gaps in the standard library — focused on map and object manipulation, filtering, and merging.
 
-This repository is a *template* for a [Terraform](https://www.terraform.io) provider. It is intended as a starting point for creating Terraform providers, containing:
+Requires Terraform >= 1.8.0 (provider functions support).
 
-- A resource and a data source (`internal/provider/`),
-- Examples (`examples/`) and generated documentation (`docs/`),
-- Miscellaneous meta files.
+## Functions
 
-These files contain boilerplate code that you will need to edit to create your own Terraform provider. Tutorials for creating Terraform providers can be found on the [HashiCorp Developer](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework) platform. _Terraform Plugin Framework specific guides are titled accordingly._
+### Maps & objects
 
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for how to create a new repository from this template on GitHub.
+| Function | Description |
+|---|---|
+| `pick(input, keys)` | Keep only the specified keys from a map or object |
+| `omit(input, keys)` | Remove the specified keys from a map or object |
+| `filter(input, conditions...)` | Keep entries whose attributes match any condition object |
+| `nestedMerge(maps...)` | Deep merge — recursively combines nested objects, last-wins for all other types |
 
-Once you've written your provider, you'll want to [publish it on the Terraform Registry](https://developer.hashicorp.com/terraform/registry/providers/publishing) so that others can use it.
+### Cleaning
 
-## Requirements
+| Function | Description |
+|---|---|
+| `compact(input)` | Remove null and empty string values from a list or map |
+| `minimal(input)` | Remove null, empty strings, and empty collections from a list or map |
+| `nestedCompact(input)` | Same as `compact`, but applied recursively to a nested map |
+| `nestedMinimal(input)` | Same as `minimal`, but applied recursively to a nested map |
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.24
+### Nesting & flattening
 
-## Building The Provider
+| Function | Description |
+|---|---|
+| `collapse(input, separator)` | Flatten a nested map into a single-level map with path-based keys |
+| `expand(input, separator)` | Expand a flat path-keyed map back into a nested map |
+| `combine(input)` | Cartesian product of map dimensions, returned as a flat map |
+| `nestedCombine(input)` | Cartesian product of map dimensions, returned as a nested map |
+| `nestedFilter(input, conditions...)` | Filter a nested map by leaf object attributes |
 
-1. Clone the repository
-1. Enter the repository directory
-1. Build the provider using the Go `install` command:
+### Utilities
+
+| Function | Description |
+|---|---|
+| `isNull(value)` | Returns `true` if the value is null |
+| `isNotNull(value)` | Returns `true` if the value is not null |
+| `trimext(path)` | Strip the last file extension from a path string |
+
+## Usage
+
+```terraform
+terraform {
+  required_providers {
+    util = {
+      source  = "tjeerd.dev/utility-tools"
+      version = "~> 1.0"
+    }
+  }
+  required_version = ">= 1.8.0"
+}
+
+provider "util" {}
+```
+
+Functions are called as `provider::util::<name>(...)`.
+
+## Suggestions
+
+Missing a function you'd find useful? [Open an issue](https://github.com/TheWolfNL/terraform-provider-utility-tools/issues) with your suggestion.
+
+## Development
+
+**Requirements:** Go >= 1.24
 
 ```shell
+# Build
 go install
-```
 
-## Adding Dependencies
+# Test
+go test ./internal/provider/...
 
-This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
-Please see the Go documentation for the most up to date information about using Go modules.
-
-To add a new dependency `github.com/author/dependency` to your Terraform provider:
-
-```shell
-go get github.com/author/dependency
-go mod tidy
-```
-
-Then commit the changes to `go.mod` and `go.sum`.
-
-## Using the provider
-
-Fill this in for each provider
-
-## Developing the Provider
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
-
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
-
-To generate or update documentation, run `make generate`.
-
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```shell
-make testacc
+# Regenerate docs
+cd tools && go generate ./...
 ```

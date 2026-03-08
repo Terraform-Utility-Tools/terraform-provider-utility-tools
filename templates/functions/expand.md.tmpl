@@ -1,0 +1,60 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Basic usage
+
+`expand` takes a flat map with path-based keys and reconstructs the nested structure. It is the inverse of `collapse`.
+
+```terraform
+locals {
+  flat = {
+    "dev/api/port"   = 8080
+    "dev/web/port"   = 443
+    "prod/api/port"  = 8080
+    "prod/web/port"  = 443
+  }
+}
+
+output "expanded" {
+  value = provider::util::expand(local.flat)
+}
+# Result:
+# {
+#   dev  = { api = { port = 8080 }, web = { port = 443 } }
+#   prod = { api = { port = 8080 }, web = { port = 443 } }
+# }
+```
+
+### Custom separator
+
+Pass a string to specify the separator used in the flat keys (default comes from the provider configuration).
+
+```terraform
+output "from_dot_keys" {
+  value = provider::util::expand({
+    "a.b.c" = "deep value"
+    "a.b.d" = "another value"
+    "x.y"   = "shallow"
+  }, ".")
+}
+# Result: { a = { b = { c = "deep value", d = "another value" } }, x = { y = "shallow" } }
+```
+

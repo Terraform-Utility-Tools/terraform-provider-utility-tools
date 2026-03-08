@@ -1,0 +1,94 @@
+---
+page_title: "{{.Name}} Function - {{.RenderedProviderName}}"
+description: |-
+  {{.Summary | trimspace | plainmarkdown}}
+---
+
+# `{{.Name}}` Function
+
+{{.Summary}}
+
+{{.Description}}
+
+{{.FunctionSignatureMarkdown}}
+
+{{.FunctionArgumentsMarkdown}}
+{{- if .FunctionVariadicArgumentMarkdown}}
+{{.FunctionVariadicArgumentMarkdown}}
+{{- end}}
+
+## Example Usage
+
+### Basic usage
+
+`nestedCombine` is like `combine`, but returns a nested map instead of a flat one. Each dimension becomes a level of nesting, and the leaf objects contain all dimension values as attributes.
+
+```terraform
+locals {
+  dimensions = [
+    { key = "env",     items = ["dev", "prod"] },
+    { key = "region",  items = ["europe-west1", "europe-north1"] },
+    { key = "service", items = ["api", "web"] },
+  ]
+}
+
+output "nested_combinations" {
+  value = provider::util::nestedCombine(local.dimensions)
+}
+# Result structure:
+# {
+#   dev = {
+#     europe-west1  = { api = { env = "dev", region = "europe-west1",  service = "api" }
+#                       web = { env = "dev", region = "europe-west1",  service = "web" } }
+#     europe-north1 = { api = { env = "dev", region = "europe-north1", service = "api" }
+#                       web = { env = "dev", region = "europe-north1", service = "web" } }
+#   }
+#   prod = { ... }
+# }
+```
+
+### Selecting a slice of the result
+
+Because the result is nested, you can select a specific subtree directly.
+
+```terraform
+locals {
+  all = provider::util::nestedCombine([
+    { key = "env",     items = ["dev", "stage", "prod"] },
+    { key = "service", items = ["api", "web", "worker"] },
+  ])
+}
+
+# All services for the dev environment
+output "dev_services" {
+  value = local.all["dev"]
+}
+
+# Just the prod/api entry
+output "prod_api" {
+  value = local.all["prod"]["api"]
+}
+```
+
+### Comparison to `combine`
+
+Use `combine` when you need a flat map for `for_each`. Use `nestedCombine` when you want to access specific subtrees by index, or when passing results to `nestedFilter`.
+
+```terraform
+locals {
+  dims = [
+    { key = "env",    items = ["dev", "prod"] },
+    { key = "region", items = ["europe-west1", "us-central1"] },
+  ]
+}
+
+# Flat map — good for for_each
+output "flat" {
+  value = provider::util::combine(local.dims)
+}
+
+# Nested map — good for indexed access or nestedFilter
+output "nested" {
+  value = provider::util::nestedCombine(local.dims)
+}
+```
