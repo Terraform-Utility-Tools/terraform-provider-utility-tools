@@ -26,3 +26,9 @@ locals {
 output "tls_services" {
   value = provider::util::nestedFilter(local.services, { tls = true })
 }
+# Result:
+# {
+#   dev  = { web  = { port = 80,  tls = true } }
+#   prod = { api  = { port = 8080, tls = true }
+#            web  = { port = 443,  tls = true } }
+# }

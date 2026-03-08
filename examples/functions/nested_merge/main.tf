@@ -17,3 +17,9 @@ locals {
 output "merged" {
   value = provider::util::nestedMerge(local.defaults, local.overrides)
 }
+# Result:
+# {
+#   replicas = 1
+#   tls      = true
+#   labels   = { app = "myapp", env = "prod" }
+# }

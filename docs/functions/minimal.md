@@ -51,5 +51,8 @@ locals {
 output "minimal_config" {
   value = provider::util::minimal(local.config)
 }
+# Result:
+# {
+#   api = { port = 8080 }
+# }
 ```
-

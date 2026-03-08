@@ -16,3 +16,8 @@ locals {
 output "identity_attrs" {
   value = provider::util::pick(local.entry, ["env", "service"])
 }
+# Result:
+# {
+#   env     = "prod"
+#   service = { id = "api", port = 8080 }
+# }

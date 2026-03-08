@@ -21,7 +21,19 @@ locals {
 output "nested_combine" {
   value = provider::util::nestedCombine(local.input)
 }
+# Result (excerpt):
+# {
+#   dev = {
+#     europe-west1 = {
+#       api = { env = "dev", region = "europe-west1", service = "api" }
+#       web = { env = "dev", region = "europe-west1", service = "web" }
+#     }
+#     ...
+#   }
+#   ...
+# }
 
 output "nested_combine_with_separator" {
   value = provider::util::nestedCombine(local.input, "_")
 }
+# Result (excerpt): same structure, keys joined with "_" at each level

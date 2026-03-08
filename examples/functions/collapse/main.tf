@@ -38,3 +38,14 @@ locals {
 output "collapsed" {
   value = provider::util::collapse(local.services_nested, "/", 3)
 }
+# Result:
+# {
+#   "dev/internal/web"  = { port = 80 }
+#   "dev/internal/api"  = { port = 8080 }
+#   "dev/external/web"  = { port = 443 }
+#   "dev/external/api"  = { port = 8443 }
+#   "prod/internal/web" = { port = 80 }
+#   "prod/internal/api" = { port = 8080 }
+#   "prod/external/web" = { port = 443 }
+#   "prod/external/api" = { port = 8443 }
+# }

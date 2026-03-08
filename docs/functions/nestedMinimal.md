@@ -46,4 +46,9 @@ locals {
 output "minimal_services" {
   value = provider::util::nestedMinimal(local.services)
 }
+# Result:
+# {
+#   dev  = { api = { port = 8080 } }
+#   prod = { api = { port = 8080 }, web = { port = 443 } }
+# }
 ```

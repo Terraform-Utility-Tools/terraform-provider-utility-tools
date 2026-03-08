@@ -23,7 +23,18 @@ locals {
 output "combine" {
   value = provider::util::combine(local.input)
 }
+# Result (excerpt):
+# {
+#   "dev/europe-west1/api"     = { env = "dev", region = "europe-west1", service = { neg = "api", override = 200 }, id = "api" }
+#   "dev/europe-west1/default" = { env = "dev", region = "europe-west1", service = { neg = "default", value = 100 }, id = "default" }
+#   ...
+# }
 
 output "combine_with_separator" {
   value = provider::util::combine(local.input, "_")
 }
+# Result (excerpt):
+# {
+#   "dev_europe-west1_api" = { env = "dev", region = "europe-west1", service = { neg = "api", override = 200 }, id = "api" }
+#   ...
+# }

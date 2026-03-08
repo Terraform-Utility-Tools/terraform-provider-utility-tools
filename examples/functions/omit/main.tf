@@ -16,3 +16,8 @@ locals {
 output "without_region" {
   value = provider::util::omit(local.entry, ["region"])
 }
+# Result:
+# {
+#   env     = "prod"
+#   service = { id = "api", port = 8080 }
+# }

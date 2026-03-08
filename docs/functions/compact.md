@@ -49,5 +49,10 @@ locals {
 output "compact_map" {
   value = provider::util::compact(local.features)
 }
+# Result:
+# {
+#   api   = true
+#   cache = "enabled"
+#   web   = false
+# }
 ```
-
